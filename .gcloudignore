@@ -12,5 +12,6 @@
 # below:
 .git
 .gitignore
+.idea
 
 node_modules
