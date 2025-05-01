@@ -15,3 +15,11 @@
 .idea
 
 node_modules
+
+# Exclude test files
+*_test.py
+*_tests.py
+test/
+tests/
+test_*.py
+tests_*.py

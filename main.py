@@ -1,9 +1,11 @@
 import os
+import re
 import urllib.parse
 
 import flask
 import functions_framework
 import telegram
+
 
 def is_valid_url(url: str) -> bool:
     try:
@@ -19,6 +21,23 @@ def is_valid_url(url: str) -> bool:
         # Log the specific error
         return False
 
+
+def extract_urls(text: str) -> list[str]:
+    # Regular expression to find URLs in text, excluding commas and URLs within angle brackets
+    url_pattern = r'(?<!<)(?:https?://[^\s<>",]+|www\.[^\s<>",]+)(?!>)'
+    urls = re.findall(url_pattern, text)
+    return urls
+
+
+def handle_message(bot, chat_id, message_text):
+    # Extract all URLs from the message
+    urls = extract_urls(message_text)
+    for url in urls:
+        if is_valid_url(url):
+            encoded_url = urllib.parse.quote(url, safe=':/?=&')
+            bot.sendMessage(chat_id=chat_id, text="https://archive.is/" + encoded_url)
+
+
 @functions_framework.http
 def telegram_webhook(request: flask.Request) -> flask.typing.ResponseReturnValue:
     bot = telegram.Bot(token=os.environ["ARCHIVE_BOT_TOKEN"])
@@ -30,9 +49,8 @@ def telegram_webhook(request: flask.Request) -> flask.typing.ResponseReturnValue
             chat_id = update.message.chat.id
             message_text = update.message.text
 
-            if is_valid_url(message_text):
-                message_text = urllib.parse.quote(message_text, safe=':/?=&')
-                bot.sendMessage(chat_id=chat_id, text="https://archive.is/" +message_text)
+            handle_message(bot, chat_id, message_text)
+
         except Exception as e:
             # Log the error
             return "Error processing request", 500
