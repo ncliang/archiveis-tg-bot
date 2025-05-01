@@ -23,3 +23,7 @@ test/
 tests/
 test_*.py
 tests_*.py
+
+# Exclude documentation and license files
+LICENSE
+README*
